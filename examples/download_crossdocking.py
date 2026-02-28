@@ -57,6 +57,14 @@ def main() -> None:
 
     print(f"CrossDocking mode={args.mode} version={args.version}")
     stats = ds.prepare(Path(args.manifest), upload_options=opts, remove_local_on_end=not args.keep_local)
+
+    # Upload manifest to storage alongside the dataset
+    manifest_path = Path(args.manifest)
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_key = f"{settings.datasets_prefix}crossdocking/manifests/{manifest_path.name}"
+    storage.put_file(manifest_key, str(manifest_path))
+    print(f"Manifest uploaded to storage: {manifest_key}")
+
     print(f"Done! {stats.count} files, {stats.size_bytes} bytes")
 
 

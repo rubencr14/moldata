@@ -248,13 +248,14 @@ class PDBDataset(BaseDataset):
     def build_manifest(self) -> Manifest:
         ext = self._ext
         fmt_tag = "cif" if self.pdb_format == "mmcif" else "ent"
-        pat = re.compile(rf"pdb([0-9a-z]{{4}})\.{fmt_tag}\.gz$")
+        # Match both pdb1abc.cif.gz and 1abc.cif.gz (RCSB/EBI naming variants)
+        pat = re.compile(rf"(?:pdb)?([0-9a-z]{{4}})\.{fmt_tag}\.gz$", re.I)
         rows = []
         for path in self.staging_dir.rglob(f"*{ext}"):
             m = pat.search(path.name)
             if not m:
                 continue
-            pdb_id = m.group(1)
+            pdb_id = m.group(1).lower()
             rel = path.relative_to(self.staging_dir).as_posix()
             key = f"{self.s3_prefix}{rel}"
             rows.append({
@@ -265,6 +266,8 @@ class PDBDataset(BaseDataset):
                 "key": key,
                 "size_bytes": int(path.stat().st_size),
             })
+        if not rows:
+            return Manifest(pd.DataFrame(columns=["sample_id", "dataset", "subset", "uri", "key", "size_bytes"]))
         df = pd.DataFrame(rows).sort_values("sample_id")
         return Manifest(df)
 
@@ -274,7 +277,8 @@ class PDBDataset(BaseDataset):
 
         ext = self._ext
         fmt_tag = "cif" if self.pdb_format == "mmcif" else "ent"
-        pat = re.compile(rf"pdb([0-9a-z]{{4}})\.{fmt_tag}\.gz$")
+        # Match both pdb1abc.cif.gz and 1abc.cif.gz (RCSB/EBI naming variants)
+        pat = re.compile(rf"(?:pdb)?([0-9a-z]{{4}})\.{fmt_tag}\.gz$", re.I)
         rows = []
 
         files = list(self.staging_dir.rglob(f"*{ext}"))
@@ -288,7 +292,7 @@ class PDBDataset(BaseDataset):
             m = pat.search(path.name)
             if not m:
                 continue
-            pdb_id = m.group(1)
+            pdb_id = m.group(1).lower()
             rel = path.relative_to(self.staging_dir).as_posix()
             key = f"{self.s3_prefix}{rel}"
             row = {
@@ -310,6 +314,12 @@ class PDBDataset(BaseDataset):
                 row["nonpolymer_entity_count"] = info.nonpolymer_entity_count
             rows.append(row)
 
+        if not rows:
+            return Manifest(pd.DataFrame(columns=[
+                "sample_id", "dataset", "subset", "uri", "key", "size_bytes",
+                "method", "resolution", "title", "space_group",
+                "entity_count", "polymer_entity_count", "nonpolymer_entity_count",
+            ]))
         df = pd.DataFrame(rows).sort_values("sample_id")
         return Manifest(df)
 

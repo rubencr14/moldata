@@ -56,6 +56,12 @@ def main() -> None:
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest = ds.build_manifest()
     manifest.save_parquet(manifest_path)
+
+    # Upload manifest to storage alongside the dataset
+    manifest_key = f"{settings.datasets_prefix}pdbbind/manifests/{manifest_path.name}"
+    storage.put_file(manifest_key, str(manifest_path))
+    print(f"Manifest uploaded to storage: {manifest_key}")
+
     print(f"Done! Manifest: {manifest_path} ({manifest.count()} entries)")
 
     if not args.keep_local:

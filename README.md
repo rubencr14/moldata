@@ -64,7 +64,7 @@ Three datasets are supported out of the box. Each supports parallel transfers, r
 | Chunking | Batch processing with checkpoint flush after each batch |
 | Resume | JSON checkpoints — interrupted uploads resume from where they stopped |
 | Tar shards | Optional packing into `.tar` for fewer S3 objects |
-| Auto-cleanup | Local staging deleted after successful upload (`--keep-local` to override) |
+| Local staging | Kept by default; use `--remove-local` to delete after upload |
 
 ### 2. SOLID Structure Parsers
 
@@ -147,10 +147,14 @@ print(ds.summary())
 
 `MinIOQuery` combines your manifest (parquet) with the RCSB Search API to select structures by biological criteria, then downloads only the matching files from MinIO:
 
+- The manifest is **saved locally** and **uploaded to storage** together with the dataset (e.g. `datasets/pdb/manifests/pdb.parquet`).
+- You can use a local path or an S3 URI: `q = MinIOQuery("s3://bucket/datasets/pdb/manifests/pdb.parquet")`.
+
 ```python
 from moldata.query import MinIOQuery
 
-q = MinIOQuery("manifests/pdb.parquet")
+q = MinIOQuery("manifests/pdb.parquet")  # local
+# or: q = MinIOQuery("s3://molfun-data/datasets/pdb/manifests/pdb.parquet")
 
 # By Pfam family
 paths = q.fetch_by_family("PF00069", resolution_max=2.5, max_structures=200)
@@ -254,7 +258,7 @@ The `.env` file is loaded automatically. If `MINIO_ENDPOINT` or `MINIO_ACCESS_KE
 python examples/download_pdb.py
 
 # Keep local files after upload
-python examples/download_pdb.py --keep-local
+python examples/download_pdb.py
 
 # HTTPS fallback
 python examples/download_pdb.py --method https
@@ -269,8 +273,8 @@ python examples/download_pdb.py --upload-format tar_shards --tar-shard-size 1000
 python examples/download_pdb.py --enriched
 
 # Upload only: skip download, upload existing staging to MinIO (resumable)
-# Use --keep-local to preserve staging; you can resume later when download completes
-python examples/download_pdb.py --upload-only --keep-local
+# Staging is kept by default; you can resume later when download completes
+python examples/download_pdb.py --upload-only
 ```
 
 ### Resumable download and upload
@@ -278,7 +282,7 @@ python examples/download_pdb.py --upload-only --keep-local
 Download and upload are fully resumable. You can stop (`Ctrl+C`) at any time and continue later:
 
 1. **During download** — rsync and HTTPS both skip already-downloaded files. Re-run the script to continue.
-2. **Upload partial** — Run `python examples/download_pdb.py --upload-only --keep-local` to upload what you have now, then re-run later when more files are downloaded. Already-uploaded objects are skipped via checkpoint and `HEAD` checks.
+2. **Upload partial** — Run `python examples/download_pdb.py --upload-only` to upload what you have now, then re-run later when more files are downloaded. Already-uploaded objects are skipped via checkpoint and `HEAD` checks. Local PDBs are kept by default.
 
 ### Query Structures
 
@@ -339,7 +343,7 @@ moldata splits random \
   --seed 42 --train 0.8 --val 0.1 --test 0.1
 ```
 
-All commands support `--keep-local` to preserve local staging files after upload.
+PDB upload keeps local files by default; use `--remove-local` to delete staging after upload.
 
 ---
 

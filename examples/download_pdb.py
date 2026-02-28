@@ -8,6 +8,9 @@ Usage:
     # Upload only (staging already populated):
     python examples/download_pdb.py --upload-only
 
+    # Upload manifest only (PDBs already in MinIO, manifest exists locally):
+    python examples/download_pdb.py --upload-manifest-only
+
     # Or override via args:
     python examples/download_pdb.py --source rcsb --format mmcif --method rsync
 """
@@ -41,7 +44,8 @@ def main() -> None:
     p.add_argument("--enriched", action="store_true", help="Build enriched manifest with mmCIF metadata")
     p.add_argument("--download-only", action="store_true", help="Only download, skip upload")
     p.add_argument("--upload-only", action="store_true", help="Only upload from existing staging, skip download")
-    p.add_argument("--keep-local", action="store_true", help="Keep local staging files after upload (default: remove)")
+    p.add_argument("--upload-manifest-only", action="store_true", help="Only upload the manifest to MinIO (PDBs already uploaded, manifest exists locally)")
+    p.add_argument("--remove-local", action="store_true", default=False, help="Remove local staging files after upload (default: False, keep PDBs)")
     args = p.parse_args()
 
     settings = load_settings()
@@ -61,6 +65,16 @@ def main() -> None:
 
     subpath = "mmCIF" if args.format == "mmcif" else "pdb"
     prefix = f"{settings.datasets_prefix}pdb/{subpath}/"
+
+    # Upload manifest only: PDBs already in MinIO, just upload the local manifest
+    if args.upload_manifest_only:
+        manifest_path = Path(args.manifest)
+        if not manifest_path.exists():
+            raise FileNotFoundError(f"Manifest not found: {manifest_path}. Build it first or point to the correct path.")
+        manifest_key = f"{settings.datasets_prefix}pdb/manifests/{manifest_path.name}"
+        storage.put_file(manifest_key, str(manifest_path))
+        print(f"Manifest uploaded to {manifest_key}")
+        return
 
     ds = PDBDataset(
         storage=storage,
@@ -105,11 +119,18 @@ def main() -> None:
         manifest = ds.build_manifest()
     manifest.save_parquet(manifest_path)
 
+    # Upload manifest to storage (S3/MinIO or local) alongside the dataset
+    manifest_key = f"{settings.datasets_prefix}pdb/manifests/{manifest_path.name}"
+    storage.put_file(manifest_key, str(manifest_path))
+    print(f"Manifest uploaded to storage: {manifest_key}")
+
     print(f"Done! Manifest: {manifest_path} ({manifest.count()} entries, {manifest.size_bytes()} bytes)")
 
-    if not args.keep_local:
+    if args.remove_local:
         ds.cleanup_staging()
         print(f"Cleaned up local staging: {args.staging}")
+    else:
+        print(f"Local PDBs kept in {args.staging}")
 
 
 if __name__ == "__main__":
