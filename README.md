@@ -1,6 +1,6 @@
 # Moldata — Large-Scale Molecular Structure Dataset Manager
 
-![Moldata Banner](./docs/banner.png)
+![Moldata Banner](./docs/moldata.png)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](#installation)
