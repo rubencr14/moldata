@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+"""Download the full PDB archive (mmCIF) and upload to MinIO.
+
+Usage:
+    # With env vars set (see .env.example):
+    python examples/download_pdb.py
+
+    # Or override via args:
+    python examples/download_pdb.py --source rcsb --format mmcif --method rsync
+"""
+
+from __future__ import annotations
+
+import argparse
+import logging
+from pathlib import Path
+
+from moldata.config import load_settings
+from moldata.core.storage import S3Storage, LocalStorage
+from moldata.core.upload_utils import UploadOptions
+from moldata.datasets.pdb import PDBDataset
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s - %(message)s")
+
+
+def main() -> None:
+    p = argparse.ArgumentParser(description="Download PDB and upload to MinIO/S3")
+    p.add_argument("--staging", default="/tmp/moldata/pdb/mmCIF", help="Local staging directory")
+    p.add_argument("--manifest", default="manifests/pdb.parquet", help="Output manifest path")
+    p.add_argument("--source", default="rcsb", choices=["rcsb", "ebi"], help="rsync source")
+    p.add_argument("--format", default="mmcif", choices=["mmcif", "pdb"], help="File format")
+    p.add_argument("--method", default="rsync", choices=["rsync", "https"], help="Download method")
+    p.add_argument("--snapshot-year", type=int, default=None, help="Yearly snapshot for reproducibility")
+    p.add_argument("--upload-format", default="raw", choices=["raw", "tar_shards"], help="Upload format")
+    p.add_argument("--tar-shard-size", type=int, default=1000, help="Files per tar shard")
+    p.add_argument("--workers", type=int, default=16, help="Parallel upload workers")
+    p.add_argument("--batch-size", type=int, default=500, help="Upload batch size")
+    p.add_argument("--enriched", action="store_true", help="Build enriched manifest with mmCIF metadata")
+    p.add_argument("--download-only", action="store_true", help="Only download, skip upload")
+    p.add_argument("--keep-local", action="store_true", help="Keep local staging files after upload (default: remove)")
+    args = p.parse_args()
+
+    settings = load_settings()
+
+    if settings.storage_backend == "s3":
+        storage = S3Storage(
+            bucket=settings.minio_bucket,
+            endpoint_url=settings.s3_endpoint_url,
+            access_key=settings.minio_access_key,
+            secret_key=settings.minio_secret_key,
+            region=settings.minio_region,
+        )
+        bucket = settings.minio_bucket
+    else:
+        storage = LocalStorage(root=Path(settings.local_root))
+        bucket = None
+
+    subpath = "mmCIF" if args.format == "mmcif" else "pdb"
+    prefix = f"{settings.datasets_prefix}pdb/{subpath}/"
+
+    ds = PDBDataset(
+        storage=storage,
+        bucket=bucket,
+        s3_prefix=prefix,
+        _staging_dir=Path(args.staging),
+        source=args.source,
+        pdb_format=args.format,
+        download_method=args.method,
+        snapshot_year=args.snapshot_year,
+        upload_format=args.upload_format,
+        tar_shard_size=args.tar_shard_size,
+    )
+
+    # Download
+    print(f"Downloading PDB ({args.source}/{args.format}/{args.method})...")
+    ds.download()
+
+    if args.download_only:
+        print(f"Download complete. Files in {args.staging}")
+        return
+
+    # Upload
+    opts = UploadOptions(
+        max_workers=args.workers,
+        batch_size=args.batch_size,
+        checkpoint_dir=settings.checkpoint_dir,
+    )
+    print(f"Uploading to {settings.minio_bucket}/{prefix}...")
+    ds.upload(upload_options=opts)
+
+    # Manifest
+    manifest_path = Path(args.manifest)
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    if args.enriched and args.format == "mmcif":
+        print("Building enriched manifest (parsing mmCIF metadata)...")
+        manifest = ds.build_enriched_manifest()
+    else:
+        manifest = ds.build_manifest()
+    manifest.save_parquet(manifest_path)
+
+    print(f"Done! Manifest: {manifest_path} ({manifest.count()} entries, {manifest.size_bytes()} bytes)")
+
+    if not args.keep_local:
+        ds.cleanup_staging()
+        print(f"Cleaned up local staging: {args.staging}")
+
+
+if __name__ == "__main__":
+    main()

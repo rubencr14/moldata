@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "moldata"
+version = "0.1.0"
+description = "Simple dataset manager for molecular modelling datasets (PDB, PDBBind, ...), with pluggable storage backends."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name="moldata contributors"}]
+dependencies = [
+  "boto3>=1.28",
+  "pandas>=2.0",
+  "pyarrow>=14.0",
+  "python-dotenv>=1.0",
+  "typer>=0.9",
+  "tqdm>=4.66"
+]
+
+[project.urls]
+Homepage = "https://github.com/rubencr14/moldata"
+Repository = "https://github.com/rubencr14/moldata"
+Issues = "https://github.com/rubencr14/moldata/issues"
+
+[project.scripts]
+moldata = "moldata.cli:app"
+
+[tool.setuptools]
+packages = ["moldata", "moldata.core", "moldata.datasets", "moldata.parsers", "moldata.rcsb", "moldata.query", "moldata.scripts"]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
