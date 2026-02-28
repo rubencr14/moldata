@@ -1,4 +1,4 @@
-# Moldata — Large-Scale Molecular Structure Dataset Manager
+# Moldata: Large-Scale Molecular Structure Dataset Manager
 
 ![Moldata Banner](./docs/moldata.png)
 
