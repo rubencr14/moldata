@@ -5,6 +5,9 @@ Usage:
     # With env vars set (see .env.example):
     python examples/download_pdb.py
 
+    # Upload only (staging already populated):
+    python examples/download_pdb.py --upload-only
+
     # Or override via args:
     python examples/download_pdb.py --source rcsb --format mmcif --method rsync
 """
@@ -37,6 +40,7 @@ def main() -> None:
     p.add_argument("--batch-size", type=int, default=500, help="Upload batch size")
     p.add_argument("--enriched", action="store_true", help="Build enriched manifest with mmCIF metadata")
     p.add_argument("--download-only", action="store_true", help="Only download, skip upload")
+    p.add_argument("--upload-only", action="store_true", help="Only upload from existing staging, skip download")
     p.add_argument("--keep-local", action="store_true", help="Keep local staging files after upload (default: remove)")
     args = p.parse_args()
 
@@ -71,9 +75,12 @@ def main() -> None:
         tar_shard_size=args.tar_shard_size,
     )
 
-    # Download
-    print(f"Downloading PDB ({args.source}/{args.format}/{args.method})...")
-    ds.download()
+    # Download (skip if --upload-only)
+    if not args.upload_only:
+        print(f"Downloading PDB ({args.source}/{args.format}/{args.method})...")
+        ds.download()
+    else:
+        print("Upload-only mode: skipping download, using existing files in staging.")
 
     if args.download_only:
         print(f"Download complete. Files in {args.staging}")

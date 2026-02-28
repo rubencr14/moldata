@@ -267,7 +267,18 @@ python examples/download_pdb.py --upload-format tar_shards --tar-shard-size 1000
 
 # Build enriched manifest with mmCIF metadata
 python examples/download_pdb.py --enriched
+
+# Upload only: skip download, upload existing staging to MinIO (resumable)
+# Use --keep-local to preserve staging; you can resume later when download completes
+python examples/download_pdb.py --upload-only --keep-local
 ```
+
+### Resumable download and upload
+
+Download and upload are fully resumable. You can stop (`Ctrl+C`) at any time and continue later:
+
+1. **During download** — rsync and HTTPS both skip already-downloaded files. Re-run the script to continue.
+2. **Upload partial** — Run `python examples/download_pdb.py --upload-only --keep-local` to upload what you have now, then re-run later when more files are downloaded. Already-uploaded objects are skipped via checkpoint and `HEAD` checks.
 
 ### Query Structures
 
