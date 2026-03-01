@@ -44,7 +44,7 @@ class CrossDockingDataset(BaseDataset):
     storage: Storage
     bucket: Optional[str] = None
     s3_prefix: str = "datasets/crossdocking/"
-    _staging_dir: Path = Path("/tmp/moldata/crossdocking")
+    _staging_dir: Path = Path("/moldata/crossdocking")
     mode: str = "local"
     version: str = DEFAULT_VERSION
     remove_local_on_end: bool = True

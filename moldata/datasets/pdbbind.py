@@ -32,7 +32,7 @@ class PDBBindDataset(BaseDataset):
     storage: Storage
     bucket: Optional[str] = None
     s3_prefix: str = "datasets/pdbbind/"
-    _staging_dir: Path = Path("/tmp/moldata/pdbbind")
+    _staging_dir: Path = Path("/moldata/pdbbind")
     mode: str = "local"  # "local" | "official" (optional extension)
     remove_local_on_end: bool = True
 

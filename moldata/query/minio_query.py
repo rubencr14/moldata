@@ -52,7 +52,7 @@ class MinIOQuery:
     """
 
     manifest_path: Optional[str] = None
-    cache_dir: str = "/tmp/moldata/query_cache"
+    cache_dir: str = "/moldata/query_cache"
     storage: Optional[Storage] = None
     workers: int = 8
     _manifest: Optional[Manifest] = field(default=None, init=False, repr=False)

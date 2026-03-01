@@ -312,7 +312,7 @@ python examples/query_structures.py --list-collections
 | `MOLDATA_DATASETS_PREFIX` | `datasets/` | Prefix under bucket |
 | `MOLDATA_UPLOAD_MAX_WORKERS` | `16` | Parallel upload workers |
 | `MOLDATA_UPLOAD_BATCH_SIZE` | `500` | Batch size for chunking |
-| `MOLDATA_CHECKPOINT_DIR` | `/tmp/moldata/checkpoints` | Resume checkpoints |
+| `MOLDATA_CHECKPOINT_DIR` | `/moldata/checkpoints` | Resume checkpoints |
 
 ---
 
@@ -321,18 +321,18 @@ python examples/query_structures.py --list-collections
 ```bash
 # PDB
 moldata pdb prepare \
-  --staging /data/staging/pdb \
+  --staging /moldata/pdb/mmCIF \
   --manifest manifests/pdb.parquet \
   --source rcsb --pdb-format mmcif --method rsync
 
 # PDBBind
 moldata pdbbind prepare \
-  --staging /data/staging/pdbbind \
+  --staging /moldata/pdbbind \
   --manifest manifests/pdbbind.parquet
 
 # CrossDocking
 moldata crossdocking prepare \
-  --staging /data/staging/crossdocking \
+  --staging /moldata/crossdocking \
   --manifest manifests/crossdocking.parquet \
   --mode official
 

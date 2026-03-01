@@ -37,7 +37,7 @@ def main() -> None:
     p.add_argument("--resolution", type=float, default=2.5, help="Max resolution (Å)")
     p.add_argument("--max", type=int, default=200, help="Max IDs to consider")
     p.add_argument("--download", action="store_true", help="Download structures to cache")
-    p.add_argument("--cache-dir", default="/tmp/moldata/query_cache", help="Cache directory")
+    p.add_argument("--cache-dir", default="/moldata/query_cache", help="Cache directory")
     args = p.parse_args()
 
     q = MinIOQuery(manifest_path=args.manifest, cache_dir=args.cache_dir)

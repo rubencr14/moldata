@@ -35,7 +35,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 def main() -> None:
     p = argparse.ArgumentParser(description="Query structures from MinIO")
     p.add_argument("--manifest", default="manifests/pdb.parquet", help="Path to manifest parquet")
-    p.add_argument("--cache-dir", default="/tmp/moldata/query_cache", help="Local cache for downloaded files")
+    p.add_argument("--cache-dir", default="/moldata/query_cache", help="Local cache for downloaded files")
     p.add_argument("--workers", type=int, default=8, help="Parallel download workers")
 
     g = p.add_mutually_exclusive_group()

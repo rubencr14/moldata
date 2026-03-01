@@ -31,7 +31,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 
 def main() -> None:
     p = argparse.ArgumentParser(description="Download PDB and upload to MinIO/S3")
-    p.add_argument("--staging", default="/tmp/moldata/pdb/mmCIF", help="Local staging directory")
+    p.add_argument("--staging", default="/moldata/pdb/mmCIF", help="Local staging directory")
     p.add_argument("--manifest", default="manifests/pdb.parquet", help="Output manifest path")
     p.add_argument("--source", default="rcsb", choices=["rcsb", "ebi"], help="rsync source")
     p.add_argument("--format", default="mmcif", choices=["mmcif", "pdb"], help="File format")

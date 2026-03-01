@@ -25,7 +25,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 
 def main() -> None:
     p = argparse.ArgumentParser(description="Download CrossDocked2020 and upload to MinIO/S3")
-    p.add_argument("--staging", default="/tmp/moldata/crossdocking", help="Local staging directory")
+    p.add_argument("--staging", default="/moldata/crossdocking", help="Local staging directory")
     p.add_argument("--manifest", default="manifests/crossdocking.parquet", help="Output manifest")
     p.add_argument("--mode", default="official", choices=["local", "official"], help="Download mode")
     p.add_argument("--version", default="v1.3", choices=["v1.0", "v1.3"], help="Dataset version")

@@ -39,7 +39,7 @@ class UploadOptions:
 
     def _checkpoint_path(self, prefix: str) -> Path:
         h = hashlib.sha256(prefix.encode()).hexdigest()[:16]
-        base = Path(self.checkpoint_dir or "/tmp/moldata/checkpoints")
+        base = Path(self.checkpoint_dir or "/moldata/checkpoints")
         base.mkdir(parents=True, exist_ok=True)
         return base / f"upload_{h}.json"
 

@@ -50,7 +50,7 @@ class MoldataSettings:
     # Upload strategy
     upload_max_workers: int = 16
     upload_batch_size: int = 500
-    checkpoint_dir: str = "/tmp/moldata/checkpoints"
+    checkpoint_dir: str = "/moldata/checkpoints"
 
     @property
     def s3_endpoint_url(self) -> str:
@@ -78,5 +78,5 @@ def load_settings() -> MoldataSettings:
         datasets_prefix=os.environ.get("MOLDATA_DATASETS_PREFIX", "datasets/"),
         upload_max_workers=int(os.environ.get("MOLDATA_UPLOAD_MAX_WORKERS", "16")),
         upload_batch_size=int(os.environ.get("MOLDATA_UPLOAD_BATCH_SIZE", "500")),
-        checkpoint_dir=os.environ.get("MOLDATA_CHECKPOINT_DIR", "/tmp/moldata/checkpoints"),
+        checkpoint_dir=os.environ.get("MOLDATA_CHECKPOINT_DIR", "/moldata/checkpoints"),
     )

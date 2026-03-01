@@ -65,7 +65,7 @@ class PDBDataset(BaseDataset):
     storage: Storage
     bucket: Optional[str] = None
     s3_prefix: str = "datasets/pdb/mmCIF/"
-    _staging_dir: Path = Path("/tmp/moldata/pdb/mmCIF")
+    _staging_dir: Path = Path("/moldata/pdb/mmCIF")
     source: Literal["ebi", "rcsb"] = "rcsb"
     pdb_format: Literal["mmcif", "pdb"] = "mmcif"
     download_method: Literal["rsync", "https"] = "rsync"
